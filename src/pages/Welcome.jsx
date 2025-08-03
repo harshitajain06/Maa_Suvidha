@@ -1,0 +1,172 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import RecommendedCategories from "../pages/RecommendedCategories";
+
+const MaaSuvidhaContent = () => {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [firstPeriodDate, setFirstPeriodDate] = useState("");
+  const [error, setError] = useState("");
+  const [registeredUser, setRegisteredUser] = useState(null);
+
+  const navigate = useNavigate();
+
+  // Load existing user from localStorage
+  useEffect(() => {
+    const savedUser = JSON.parse(localStorage.getItem("maasuvidhaUser"));
+    if (savedUser) {
+      setRegisteredUser(savedUser);
+    }
+  }, []);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError("");
+
+    const firstDate = new Date(firstPeriodDate);
+    const today = new Date();
+
+    if (isNaN(firstDate.getTime())) {
+      setError("Please enter a valid date.");
+      return;
+    }
+
+    if (firstDate > today) {
+      setError("The date of your last missed period cannot be in the future.");
+      return;
+    }
+
+    const diffInDays = Math.floor((today - firstDate) / (1000 * 60 * 60 * 24));
+    const approxMonth = Math.floor(diffInDays / 30.5);
+    const pregnancyMonth = Math.min(9, Math.max(1, approxMonth + 1));
+
+    const userData = { name, phone, firstPeriodDate, pregnancyMonth };
+
+    // Save to localStorage
+    localStorage.setItem("maasuvidhaUser", JSON.stringify(userData));
+
+    navigate(`/guide/${pregnancyMonth}`, {
+      state: userData,
+    });
+  };
+
+  const handleReset = () => {
+    localStorage.removeItem("maasuvidhaUser");
+    setRegisteredUser(null);
+    setName("");
+    setPhone("");
+    setFirstPeriodDate("");
+  };
+
+  return (
+    <div className="bg-pink-50 min-h-screen text-gray-900 flex flex-col">
+      <main className="container mx-auto px-4 py-8 flex flex-col lg:flex-row items-start gap-10">
+        {/* Left Section */}
+        <section className="flex-1 bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-3xl font-bold text-pink-700 mb-4">
+            Welcome to <span className="text-green-600">MaaSuvidha</span>! 🤱
+          </h2>
+          <p className="text-gray-700 text-base sm:text-lg leading-relaxed">
+            MaaSuvidha is your rural maternal health companion designed for mothers, ASHAs, and caregivers with low digital and health literacy.
+            Get month-wise pregnancy guidance, essential health info, and visual tips in multiple languages.
+          </p>
+
+          <p className="mt-4 text-gray-700 text-base sm:text-lg leading-relaxed">
+            Enter your details to get personalized information, videos, and resources based on your pregnancy stage.
+            Your wellness journey starts here.
+          </p>
+
+          <ul className="list-disc list-inside mt-2 text-gray-700 text-base sm:text-lg space-y-2">
+            <li>Track your pregnancy month-wise</li>
+            <li>Access breastfeeding, immunization & hygiene info</li>
+            <li>Use Ask Maa voice assistant for help</li>
+            <li>Offline access & reminders for ASHA workers</li>
+          </ul>
+        </section>
+
+        {/* Right Section */}
+        <section className="flex-1 bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
+          {registeredUser ? (
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                Hello, {registeredUser.name}! 👋
+              </h3>
+              <p className="text-gray-700">
+                You are already registered with phone number:{" "}
+                <strong>{registeredUser.phone}</strong>
+              </p>
+              <p className="text-gray-700">
+                Pregnancy month:{" "}
+                <strong>{registeredUser.pregnancyMonth}</strong>
+              </p>
+              <button
+                onClick={() =>
+                  navigate(`/guide/${registeredUser.pregnancyMonth}`, {
+                    state: registeredUser,
+                  })
+                }
+                className="w-full bg-pink-600 text-white py-3 rounded-md hover:bg-pink-700"
+              >
+                View My Pregnancy Guide 📘
+              </button>
+              <button
+                onClick={handleReset}
+                className="w-full bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300"
+              >
+                Register as a Different User
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                Register Yourself 👩‍🍼
+              </h3>
+              <input
+                type="text"
+                placeholder="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full p-3 border rounded-md"
+                required
+              />
+              <input
+                type="tel"
+                placeholder="Phone Number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full p-3 border rounded-md"
+                required
+              />
+              <label className="block text-sm font-medium text-gray-700">
+  First Day of Last Menstrual Period
+</label>
+<input
+  type="date"
+  value={firstPeriodDate}
+  onChange={(e) => setFirstPeriodDate(e.target.value)}
+  className="w-full p-3 border rounded-md"
+/>
+
+
+              {error && (
+                <p className="text-red-600 font-semibold text-sm">{error}</p>
+              )}
+
+              <button
+                type="submit"
+                className="w-full bg-pink-600 text-white py-3 rounded-md hover:bg-pink-700"
+              >
+                Get My Pregnancy Guide 📘
+              </button>
+            </form>
+          )}
+        </section>
+      </main>
+
+      {/* Recommended Categories */}
+      <RecommendedCategories />
+    </div>
+  );
+};
+
+export default MaaSuvidhaContent;
