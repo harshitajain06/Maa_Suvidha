@@ -42,7 +42,7 @@ const MaaChat = () => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: ``, // move key to .env for security
+            Authorization: `Bearer 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`, // move key to .env for security
           },
         }
       );
