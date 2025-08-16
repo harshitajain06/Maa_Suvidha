@@ -9,6 +9,12 @@ const MaaSuvidhaContent = () => {
   const [error, setError] = useState("");
   const [registeredUser, setRegisteredUser] = useState(null);
 
+  // KMC States
+  const [showKmcForm, setShowKmcForm] = useState(false);
+  const [numSessions, setNumSessions] = useState(0);
+  const [durations, setDurations] = useState([]);
+  const [kmcSavedMsg, setKmcSavedMsg] = useState("");
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,6 +59,28 @@ const MaaSuvidhaContent = () => {
     setName("");
     setPhone("");
     setFirstPeriodDate("");
+  };
+
+  const handleKmcSubmit = (e) => {
+    e.preventDefault();
+    const kmcData = {
+      date: new Date().toLocaleDateString(),
+      numSessions,
+      durations,
+    };
+
+    let savedKmc = JSON.parse(localStorage.getItem("kmcData")) || {};
+    savedKmc[registeredUser.phone] = [
+      ...(savedKmc[registeredUser.phone] || []),
+      kmcData,
+    ];
+    localStorage.setItem("kmcData", JSON.stringify(savedKmc));
+
+    setShowKmcForm(false);
+    setNumSessions(0);
+    setDurations([]);
+    setKmcSavedMsg("✅ KMC data saved successfully!");
+    setTimeout(() => setKmcSavedMsg(""), 3000);
   };
 
   return (
@@ -104,6 +132,74 @@ const MaaSuvidhaContent = () => {
               >
                 View My Pregnancy Guide 📘
               </button>
+
+              {/* New Track KMC Button */}
+              <button
+                onClick={() => setShowKmcForm(true)}
+                className="w-full bg-green-600 text-white py-3 rounded-md hover:bg-green-700"
+              >
+                Track my KMC 🍼
+              </button>
+
+              {showKmcForm && (
+                <form onSubmit={handleKmcSubmit} className="space-y-3 mt-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    How many KMC sessions did you give today?
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={numSessions}
+                    onChange={(e) => {
+                      const count = Number(e.target.value);
+                      setNumSessions(count);
+                      setDurations(Array(count).fill(""));
+                    }}
+                    className="w-full p-2 border rounded-md"
+                    required
+                  />
+
+                  {Array.from({ length: numSessions }).map((_, i) => (
+                    <div key={i}>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Duration of Session {i + 1} (minutes)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={durations[i] || ""}
+                        onChange={(e) => {
+                          const newDurations = [...durations];
+                          newDurations[i] = e.target.value;
+                          setDurations(newDurations);
+                        }}
+                        className="w-full p-2 border rounded-md"
+                        required
+                      />
+                    </div>
+                  ))}
+
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+                  >
+                    Save KMC Data 💾
+                  </button>
+                </form>
+              )}
+
+              {kmcSavedMsg && (
+                <p className="text-green-600 font-semibold">{kmcSavedMsg}</p>
+              )}
+
+              {/* Navigate to Progress Page */}
+<button
+  onClick={() => navigate("/kmc-progress")}
+  className="w-full bg-purple-600 text-white py-3 rounded-md hover:bg-purple-700"
+>
+  View KMC Progress 📊
+</button>
+
               <button
                 onClick={handleReset}
                 className="w-full bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300"
@@ -160,7 +256,7 @@ const MaaSuvidhaContent = () => {
 
       {/* Floating Ask Maa Chat Button */}
       <button
-        onClick={() => navigate("/chat")} // Your chat route
+        onClick={() => navigate("/chat")}
         className="fixed bottom-5 right-5 bg-pink-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-pink-700 transition-all z-50"
         style={{ display: "flex", alignItems: "center", gap: "8px" }}
       >

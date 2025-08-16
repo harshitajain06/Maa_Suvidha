@@ -6,7 +6,7 @@ import FoodCategoriesPage from "./pages/FoodCategoriesPage";
 import BookletPage from "./pages/BookletPage";
 import RecommendedCategories from "./pages/RecommendedCategories";
 import MaaChat from "./pages/MaaChat";
-
+import KmcProgress from "./pages/KmcProgress";
 function App() {
   return (
     <Router>
@@ -19,6 +19,7 @@ function App() {
           <Route path="/guide/:month" element={<BookletPage />} />
           <Route path="/recommendedCategories" element={<RecommendedCategories />} />
           <Route path="/chat" element={<MaaChat />} />
+          <Route path="/kmc-progress" element={<KmcProgress />} />
 
         </Routes>
       </main>
