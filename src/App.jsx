@@ -5,6 +5,7 @@ import Welcome from "./pages/Welcome";
 import FoodCategoriesPage from "./pages/FoodCategoriesPage";
 import BookletPage from "./pages/BookletPage";
 import RecommendedCategories from "./pages/RecommendedCategories";
+import MaaChat from "./pages/MaaChat";
 
 function App() {
   return (
@@ -17,6 +18,8 @@ function App() {
           <Route path="/categories" element={<FoodCategoriesPage />} />
           <Route path="/guide/:month" element={<BookletPage />} />
           <Route path="/recommendedCategories" element={<RecommendedCategories />} />
+          <Route path="/chat" element={<MaaChat />} />
+
         </Routes>
       </main>
 
