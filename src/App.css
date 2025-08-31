@@ -40,3 +40,45 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Google Translate Widget Styling */
+#google_translate_element {
+  background: white;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 8px auto;
+  max-width: 300px;
+}
+
+#google_translate_element select {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 6px 12px;
+  background: white;
+  color: #374151;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#google_translate_element select:focus {
+  border-color: #ec4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+}
+
+/* Hide Google Translate attribution */
+.goog-logo-link {
+  display: none !important;
+}
+
+.goog-te-gadget {
+  color: transparent !important;
+}
+
+.goog-te-gadget .goog-te-combo {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
