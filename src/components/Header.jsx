@@ -53,10 +53,12 @@ const Header = () => {
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo and Title */}
         <div className="flex items-center space-x-3">
-          <img src={logo} alt="Diabetopedia Logo" className="h-12 w-12 rounded-full object-cover" />
-          <h1 className="text-2xl md:text-3xl font-extrabold italic font-serif text-gray-800">
-            Maa Suvidha
-          </h1>
+          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+            <img src={logo} alt="Diabetopedia Logo" className="h-12 w-12 rounded-full object-cover" />
+            <h1 className="text-2xl md:text-3xl font-extrabold italic font-serif text-gray-800">
+              Maa Suvidha
+            </h1>
+          </Link>
         </div>
 
         {/* Desktop Navigation */}
@@ -71,7 +73,7 @@ const Header = () => {
             href="https://growthchartonline.com/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="bg-purple-500 px-4 py-2 rounded-full text-white hover:bg-purple-600 transition-colors"
+            className="bg-pink-400 px-4 py-2 rounded-full text-white hover:bg-pink-500 transition-colors"
           >
             Growth Chart
           </a>
@@ -79,8 +81,8 @@ const Header = () => {
             onClick={toggleTranslator}
             className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-colors ${
               isTranslatorActive 
-                ? 'bg-green-500 text-white hover:bg-green-600' 
-                : 'bg-blue-500 text-white hover:bg-blue-600'
+                ? 'bg-pink-600 text-white hover:bg-pink-700' 
+                : 'bg-pink-400 text-white hover:bg-pink-500'
             }`}
           >
             <Languages size={18} />
@@ -116,27 +118,27 @@ const Header = () => {
               </Link>
             </li>
             <li>
-              <a 
-                href="https://growthchartonline.com/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block text-gray-900 hover:bg-purple-500 hover:text-white px-4 py-2 rounded-md transition-colors"
-              >
-                Growth Chart
-              </a>
+                           <a 
+               href="https://growthchartonline.com/" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               className="block text-gray-900 hover:bg-pink-500 hover:text-white px-4 py-2 rounded-md transition-colors"
+             >
+               Growth Chart
+             </a>
             </li>
             <li>
-              <button 
-                onClick={toggleTranslator}
-                className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-                  isTranslatorActive 
-                    ? 'bg-green-500 text-white hover:bg-green-600' 
-                    : 'bg-blue-500 text-white hover:bg-blue-600'
-                }`}
-              >
-                <Languages size={18} />
-                <span>{isTranslatorActive ? 'Hide Translator' : 'Translate'}</span>
-              </button>
+                           <button 
+               onClick={toggleTranslator}
+               className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                 isTranslatorActive 
+                   ? 'bg-pink-600 text-white hover:bg-pink-700' 
+                   : 'bg-pink-400 text-white hover:bg-pink-500'
+               }`}
+             >
+               <Languages size={18} />
+               <span>{isTranslatorActive ? 'Hide Translator' : 'Translate'}</span>
+             </button>
             </li>
           </ul>
         </nav>
