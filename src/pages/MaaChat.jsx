@@ -42,7 +42,7 @@ const MaaChat = () => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer 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`, // move key to .env for security
+            Authorization: `Bearer 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`, // move key to .env for security
           },
         }
       );
