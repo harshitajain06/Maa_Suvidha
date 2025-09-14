@@ -21,13 +21,13 @@ ChartJS.register(
   Legend
 );
 
-const DAILY_GOAL_MINUTES = 180; // 3 hours daily goal
+const DAILY_GOAL_HOURS = 3; // 3 hours daily goal
 
 const KmcProgress = () => {
-  const [todayDuration, setTodayDuration] = useState(0);
-  const [todaySessions, setTodaySessions] = useState(0);
-  const [weeklyDuration, setWeeklyDuration] = useState(0);
-  const [monthlyDuration, setMonthlyDuration] = useState(0);
+  const [todayHours, setTodayHours] = useState(0);
+  const [todayEntries, setTodayEntries] = useState(0);
+  const [weeklyHours, setWeeklyHours] = useState(0);
+  const [monthlyHours, setMonthlyHours] = useState(0);
   const [chartData, setChartData] = useState({});
   const [todayDate, setTodayDate] = useState("");
 
@@ -41,10 +41,10 @@ const KmcProgress = () => {
     const today = new Date().toLocaleDateString();
     setTodayDate(today);
 
-    let todayDur = 0;
-    let todaySes = 0;
-    let weekDur = 0;
-    let monthDur = 0;
+    let todayHrs = 0;
+    let todayEnt = 0;
+    let weekHrs = 0;
+    let monthHrs = 0;
 
     // Group by date for chart
     const weeklyMap = {};
@@ -52,14 +52,11 @@ const KmcProgress = () => {
 
     userKmc.forEach((entry) => {
       const entryDate = new Date(entry.date);
-      const totalDur = entry.durations.reduce(
-        (sum, d) => sum + Number(d || 0),
-        0
-      );
+      const hours = entry.hours || 0; // Use hours directly from new data structure
 
       if (entry.date === today) {
-        todayDur += totalDur;
-        todaySes += entry.numSessions;
+        todayHrs += hours;
+        todayEnt += 1; // Count entries instead of sessions
       }
 
       // Past 7 days
@@ -67,9 +64,9 @@ const KmcProgress = () => {
         (now - entryDate) / (1000 * 60 * 60 * 24)
       );
       if (diffDays < 7) {
-        weekDur += totalDur;
+        weekHrs += hours;
         weeklyMap[entryDate.toLocaleDateString("en-US", { weekday: "long" })] =
-          totalDur;
+          hours;
       }
 
       // Same month
@@ -77,14 +74,14 @@ const KmcProgress = () => {
         entryDate.getMonth() === now.getMonth() &&
         entryDate.getFullYear() === now.getFullYear()
       ) {
-        monthDur += totalDur;
+        monthHrs += hours;
       }
     });
 
-    setTodayDuration(todayDur);
-    setTodaySessions(todaySes);
-    setWeeklyDuration(weekDur);
-    setMonthlyDuration(monthDur);
+    setTodayHours(todayHrs);
+    setTodayEntries(todayEnt);
+    setWeeklyHours(weekHrs);
+    setMonthlyHours(monthHrs);
 
     // Prepare chart data (last 7 days)
     const labels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -94,7 +91,7 @@ const KmcProgress = () => {
       labels,
       datasets: [
         {
-          label: "KMC Duration (mins)",
+          label: "KMC Duration (hours)",
           data: dataPoints,
           fill: false,
           borderColor: "#ec4899",
@@ -112,20 +109,20 @@ const KmcProgress = () => {
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg shadow text-center">
-          <h4 className="font-semibold">Today’s Duration</h4>
-          <p className="text-xl text-pink-600">{todayDuration} mins</p>
+          <h4 className="font-semibold">Today's Hours</h4>
+          <p className="text-xl text-pink-600">{todayHours.toFixed(1)} hrs</p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow text-center">
-          <h4 className="font-semibold">Today’s Sessions</h4>
-          <p className="text-xl text-pink-600">{todaySessions}</p>
+          <h4 className="font-semibold">Today's Entries</h4>
+          <p className="text-xl text-pink-600">{todayEntries}</p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow text-center">
-          <h4 className="font-semibold">Weekly Duration</h4>
-          <p className="text-xl text-pink-600">{weeklyDuration} mins</p>
+          <h4 className="font-semibold">Weekly Hours</h4>
+          <p className="text-xl text-pink-600">{weeklyHours.toFixed(1)} hrs</p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow text-center">
-          <h4 className="font-semibold">Monthly Duration</h4>
-          <p className="text-xl text-pink-600">{monthlyDuration} mins</p>
+          <h4 className="font-semibold">Monthly Hours</h4>
+          <p className="text-xl text-pink-600">{monthlyHours.toFixed(1)} hrs</p>
         </div>
       </div>
 
@@ -148,21 +145,21 @@ const KmcProgress = () => {
             className="bg-green-500 h-6 rounded-full text-xs text-white flex items-center justify-center"
             style={{
               width: `${Math.min(
-                (todayDuration / DAILY_GOAL_MINUTES) * 100,
+                (todayHours / DAILY_GOAL_HOURS) * 100,
                 100
               )}%`,
             }}
           >
-            {Math.min(todayDuration, DAILY_GOAL_MINUTES)} / {DAILY_GOAL_MINUTES} mins
+            {Math.min(todayHours, DAILY_GOAL_HOURS).toFixed(1)} / {DAILY_GOAL_HOURS} hrs
           </div>
         </div>
         <p className="text-gray-700">
-          {todayDuration >= DAILY_GOAL_MINUTES
+          {todayHours >= DAILY_GOAL_HOURS
             ? "🎉 Goal met!"
-            : `Daily 3 hours goal not met yet…`}
+            : `Daily ${DAILY_GOAL_HOURS} hours goal not met yet…`}
         </p>
         <div className="text-4xl mt-2">
-          {todayDuration >= DAILY_GOAL_MINUTES ? "😊" : "☹️"}
+          {todayHours >= DAILY_GOAL_HOURS ? "😊" : "☹️"}
         </div>
       </div>
     </div>

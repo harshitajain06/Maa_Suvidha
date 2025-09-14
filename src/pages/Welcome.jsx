@@ -11,9 +11,16 @@ const MaaSuvidhaContent = () => {
 
   // KMC States
   const [showKmcForm, setShowKmcForm] = useState(false);
-  const [numSessions, setNumSessions] = useState(0);
-  const [durations, setDurations] = useState([]);
+  const [kmcHours, setKmcHours] = useState("");
   const [kmcSavedMsg, setKmcSavedMsg] = useState("");
+
+  // Baby Growth States
+  const [showGrowthForm, setShowGrowthForm] = useState(false);
+  const [showGrowthHistory, setShowGrowthHistory] = useState(false);
+  const [babyWeight, setBabyWeight] = useState("");
+  const [babyAge, setBabyAge] = useState("");
+  const [growthSavedMsg, setGrowthSavedMsg] = useState("");
+  const [growthHistory, setGrowthHistory] = useState([]);
 
   const navigate = useNavigate();
 
@@ -21,8 +28,15 @@ const MaaSuvidhaContent = () => {
     const savedUser = JSON.parse(localStorage.getItem("maasuvidhaUser"));
     if (savedUser) {
       setRegisteredUser(savedUser);
+      loadGrowthHistory(savedUser.phone);
     }
   }, []);
+
+  const loadGrowthHistory = (phone) => {
+    const growthData = JSON.parse(localStorage.getItem("babyGrowthData")) || {};
+    const userGrowth = growthData[phone] || [];
+    setGrowthHistory(userGrowth);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -63,10 +77,18 @@ const MaaSuvidhaContent = () => {
 
   const handleKmcSubmit = (e) => {
     e.preventDefault();
+    
+    // Validate hours input
+    if (!kmcHours || kmcHours <= 0) {
+      setKmcSavedMsg("❌ Please enter valid hours for KMC");
+      setTimeout(() => setKmcSavedMsg(""), 3000);
+      return;
+    }
+
     const kmcData = {
       date: new Date().toLocaleDateString(),
-      numSessions,
-      durations,
+      hours: parseFloat(kmcHours),
+      timestamp: new Date().toISOString()
     };
 
     let savedKmc = JSON.parse(localStorage.getItem("kmcData")) || {};
@@ -77,10 +99,49 @@ const MaaSuvidhaContent = () => {
     localStorage.setItem("kmcData", JSON.stringify(savedKmc));
 
     setShowKmcForm(false);
-    setNumSessions(0);
-    setDurations([]);
-    setKmcSavedMsg("✅ KMC data saved successfully!");
-    setTimeout(() => setKmcSavedMsg(""), 3000);
+    setKmcHours("");
+    setKmcSavedMsg(`✅ KMC data saved successfully! ${kmcHours} hours recorded.`);
+    setTimeout(() => setKmcSavedMsg(""), 5000);
+  };
+
+  const handleGrowthSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validate inputs
+    if (!babyWeight || babyWeight <= 0) {
+      setGrowthSavedMsg("❌ Please enter valid baby weight");
+      setTimeout(() => setGrowthSavedMsg(""), 3000);
+      return;
+    }
+
+    if (!babyAge || babyAge < 0) {
+      setGrowthSavedMsg("❌ Please enter valid baby age");
+      setTimeout(() => setGrowthSavedMsg(""), 3000);
+      return;
+    }
+
+    const growthData = {
+      date: new Date().toLocaleDateString(),
+      weight: parseFloat(babyWeight),
+      age: parseFloat(babyAge),
+      timestamp: new Date().toISOString()
+    };
+
+    let savedGrowth = JSON.parse(localStorage.getItem("babyGrowthData")) || {};
+    savedGrowth[registeredUser.phone] = [
+      ...(savedGrowth[registeredUser.phone] || []),
+      growthData,
+    ];
+    localStorage.setItem("babyGrowthData", JSON.stringify(savedGrowth));
+
+    // Reload history
+    loadGrowthHistory(registeredUser.phone);
+
+    setShowGrowthForm(false);
+    setBabyWeight("");
+    setBabyAge("");
+    setGrowthSavedMsg(`✅ Baby growth data saved! Weight: ${babyWeight}kg, Age: ${babyAge} months`);
+    setTimeout(() => setGrowthSavedMsg(""), 5000);
   };
 
   return (
@@ -144,40 +205,21 @@ const MaaSuvidhaContent = () => {
               {showKmcForm && (
                 <form onSubmit={handleKmcSubmit} className="space-y-3 mt-4">
                   <label className="block text-sm font-medium text-gray-700">
-                    How many KMC sessions did you give today?
+                    How many hours of KMC did you give today?
                   </label>
                   <input
                     type="number"
-                    min="1"
-                    value={numSessions}
-                    onChange={(e) => {
-                      const count = Number(e.target.value);
-                      setNumSessions(count);
-                      setDurations(Array(count).fill(""));
-                    }}
+                    min="0.1"
+                    step="0.1"
+                    value={kmcHours}
+                    onChange={(e) => setKmcHours(e.target.value)}
+                    placeholder="e.g., 2.5 hours"
                     className="w-full p-2 border rounded-md"
                     required
                   />
-
-                  {Array.from({ length: numSessions }).map((_, i) => (
-                    <div key={i}>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Duration of Session {i + 1} (minutes)
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={durations[i] || ""}
-                        onChange={(e) => {
-                          const newDurations = [...durations];
-                          newDurations[i] = e.target.value;
-                          setDurations(newDurations);
-                        }}
-                        className="w-full p-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                  ))}
+                  <p className="text-xs text-gray-500">
+                    💡 You can enter decimal values (e.g., 1.5 for 1 hour 30 minutes)
+                  </p>
 
                   <button
                     type="submit"
@@ -192,13 +234,108 @@ const MaaSuvidhaContent = () => {
                 <p className="text-green-600 font-semibold">{kmcSavedMsg}</p>
               )}
 
-              {/* Navigate to Progress Page */}
-<button
-  onClick={() => navigate("/kmc-progress")}
-  className="w-full bg-purple-600 text-white py-3 rounded-md hover:bg-purple-700"
->
-  View KMC Progress 📊
-</button>
+              {/* Baby Growth Tracking Button */}
+              <button
+                onClick={() => setShowGrowthForm(true)}
+                className="w-full bg-orange-600 text-white py-3 rounded-md hover:bg-orange-700"
+              >
+                Track Baby Growth 📈
+              </button>
+
+              {showGrowthForm && (
+                <form onSubmit={handleGrowthSubmit} className="space-y-3 mt-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Baby's Weight (kg)
+                    </label>
+                    <input
+                      type="number"
+                      min="0.1"
+                      step="0.1"
+                      value={babyWeight}
+                      onChange={(e) => setBabyWeight(e.target.value)}
+                      placeholder="e.g., 3.5 kg"
+                      className="w-full p-2 border rounded-md"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Baby's Age (months)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={babyAge}
+                      onChange={(e) => setBabyAge(e.target.value)}
+                      placeholder="e.g., 2.5 months"
+                      className="w-full p-2 border rounded-md"
+                      required
+                    />
+                  </div>
+
+                  <p className="text-xs text-gray-500">
+                    💡 Track your baby's growth by recording weight and age regularly
+                  </p>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-orange-600 text-white py-2 rounded-md hover:bg-orange-700"
+                  >
+                    Save Growth Data 📊
+                  </button>
+                </form>
+              )}
+
+              {growthSavedMsg && (
+                <p className="text-green-600 font-semibold">{growthSavedMsg}</p>
+              )}
+
+              {/* Growth History Section */}
+              {growthHistory.length > 0 && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => setShowGrowthHistory(!showGrowthHistory)}
+                    className="w-full bg-yellow-500 text-white py-2 rounded-md hover:bg-yellow-600 transition-colors"
+                  >
+                    {showGrowthHistory ? 'Hide' : 'Show'} Growth History 📋
+                  </button>
+                  
+                  {showGrowthHistory && (
+                    <div className="mt-3 space-y-2 max-h-40 overflow-y-auto">
+                      {growthHistory.slice(-5).reverse().map((entry, index) => (
+                        <div key={index} className="bg-gray-50 p-3 rounded-md text-sm">
+                          <div className="font-medium text-gray-800">
+                            {entry.date} - {entry.age} months old
+                          </div>
+                          <div className="text-gray-600">
+                            Weight: <strong>{entry.weight}kg</strong>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Navigate to Progress Pages */}
+              <div className="grid grid-cols-1 gap-2">
+                <button
+                  onClick={() => navigate("/kmc-progress")}
+                  className="w-full bg-purple-600 text-white py-3 rounded-md hover:bg-purple-700"
+                >
+                  View KMC Progress 📊
+                </button>
+                
+                <button
+                  onClick={() => navigate("/baby-growth-progress")}
+                  className="w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700"
+                >
+                  View Baby Growth Progress 📈
+                </button>
+              </div>
 
               <button
                 onClick={handleReset}
