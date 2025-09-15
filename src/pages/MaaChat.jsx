@@ -1,23 +1,63 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { marked } from "marked";
+import { db } from "../../config/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 const MaaChat = () => {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
       content:
-        "Hello beta 🤱, I am your Maa. Tell me, how are you feeling today? I’m here to guide you through your postnatal journey.",
+        "Hello beta 🤱, I am your Maa. Tell me, how are you feeling today? I'm here to guide you through your postnatal journey.",
     },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [apiKey, setApiKey] = useState("");
+  const [apiKeyLoading, setApiKeyLoading] = useState(true);
 
   const navigate = useNavigate();
 
+  // Fetch API key from Firebase on component mount
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        const configDoc = await getDoc(doc(db, 'config', 'openai'));
+        if (configDoc.exists()) {
+          setApiKey(configDoc.data().apiKey);
+        } else {
+          console.error('API key not found in Firebase');
+          setMessages(prev => [...prev, {
+            role: "assistant",
+            content: "Beta, Maa is having trouble with the configuration. Please contact support."
+          }]);
+        }
+      } catch (error) {
+        console.error('Error fetching API key:', error);
+        setMessages(prev => [...prev, {
+          role: "assistant",
+          content: "Beta, Maa is having trouble connecting to the server. Please try again later."
+        }]);
+      } finally {
+        setApiKeyLoading(false);
+      }
+    };
+
+    fetchApiKey();
+  }, []);
+
   const handleSend = async () => {
     if (!input.trim()) return;
+    
+    if (!apiKey) {
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: "Beta, Maa is still loading. Please wait a moment and try again."
+      }]);
+      return;
+    }
 
     const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
@@ -42,7 +82,7 @@ const MaaChat = () => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer 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`, // move key to .env for security
+            Authorization: `Bearer ${apiKey}`,
           },
         }
       );
@@ -115,15 +155,23 @@ const MaaChat = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyPress}
-          placeholder="Type your question..."
-          className="flex-1 p-3 border rounded-md resize-none"
+          placeholder={apiKeyLoading ? "Loading Maa..." : "Type your question..."}
+          disabled={apiKeyLoading || !apiKey}
+          className={`flex-1 p-3 border rounded-md resize-none ${
+            apiKeyLoading || !apiKey ? 'bg-gray-100 cursor-not-allowed' : ''
+          }`}
           rows={1}
         />
         <button
           onClick={handleSend}
-          className="bg-pink-600 text-white px-4 py-2 rounded-md hover:bg-pink-700"
+          disabled={apiKeyLoading || !apiKey || loading}
+          className={`px-4 py-2 rounded-md ${
+            apiKeyLoading || !apiKey || loading
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-pink-600 hover:bg-pink-700'
+          } text-white`}
         >
-          Send
+          {apiKeyLoading ? 'Loading...' : loading ? 'Sending...' : 'Send'}
         </button>
       </div>
     </div>
